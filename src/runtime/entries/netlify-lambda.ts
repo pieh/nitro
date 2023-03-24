@@ -1,4 +1,5 @@
 import "#internal/nitro/virtual/polyfill";
+import { types } from "util";
 import type {
   Handler,
   HandlerResponse,
@@ -33,7 +34,7 @@ export async function lambda(
   return {
     statusCode: r.status,
     headers: normalizeOutgoingHeaders(r.headers),
-    body: r.body.toString(),
+    ...normalizeOutgoingBodyAndEncoding(r.body),
   };
 }
 
@@ -55,4 +56,25 @@ function normalizeOutgoingHeaders(
       Array.isArray(v) ? v.join(",") : v!,
     ])
   );
+}
+
+function normalizeOutgoingBodyAndEncoding(body: BodyInit): {
+  body: string;
+  isBase64Encoded?: boolean;
+} {
+  if (types.isUint8Array(body)) {
+    if (!(body instanceof Buffer)) {
+      body = Buffer.from(body);
+    }
+
+    return {
+      body: body.toString("base64"),
+      isBase64Encoded: true,
+    };
+  } else {
+    return {
+      body: body.toString(),
+      isBase64Encoded: false,
+    };
+  }
 }
