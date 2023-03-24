@@ -62,7 +62,7 @@ function normalizeOutgoingBodyAndEncoding(body: BodyInit): {
   body: string;
   isBase64Encoded?: boolean;
 } {
-  if (types.isUint8Array(body)) {
+  if (types.isUint8Array(body) || types.isArrayBuffer(body)) {
     if (!(body instanceof Buffer)) {
       body = Buffer.from(body);
     }
