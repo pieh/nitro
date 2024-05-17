@@ -24,19 +24,7 @@ export const netlify = defineNitroPreset({
     async compiled(nitro: Nitro) {
       await writeHeaders(nitro);
       await writeRedirects(nitro);
-
-      if (nitro.options.netlify) {
-        const configPath = join(
-          nitro.options.output.dir,
-          "../deploy/v1/config.json"
-        );
-        await fsp.mkdir(dirname(configPath), { recursive: true });
-        await fsp.writeFile(
-          configPath,
-          JSON.stringify(nitro.options.netlify),
-          "utf8"
-        );
-      }
+      await writeDeployConfig(nitro);
 
       const functionConfig = {
         config: { nodeModuleFormat: "esm" },
@@ -87,6 +75,7 @@ export const netlifyEdge = defineNitroPreset({
     async compiled(nitro: Nitro) {
       await writeHeaders(nitro);
       await writeRedirects(nitro);
+      await writeDeployConfig(nitro);
 
       // https://docs.netlify.com/edge-functions/create-integration/
       const manifest = {
@@ -125,6 +114,7 @@ export const netlifyStatic = defineNitroPreset({
     async compiled(nitro: Nitro) {
       await writeHeaders(nitro);
       await writeRedirects(nitro);
+      await writeDeployConfig(nitro);
     },
   },
 });
@@ -260,4 +250,19 @@ function deprecateSWR(nitro: Nitro) {
 
 function _hasProp(obj: any, prop: string) {
   return obj && typeof obj === "object" && prop in obj;
+}
+
+async function writeDeployConfig(nitro: Nitro) {
+  if (nitro.options.netlify) {
+    const configPath = join(
+      nitro.options.rootDir,
+      ".netlify/deploy/v1/config.json"
+    );
+    await fsp.mkdir(dirname(configPath), { recursive: true });
+    await fsp.writeFile(
+      configPath,
+      JSON.stringify(nitro.options.netlify),
+      "utf8"
+    );
+  }
 }

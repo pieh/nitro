@@ -74,7 +74,10 @@ describe("nitro:preset:netlify-v2", async () => {
       });
       it("writes config.json", async () => {
         const config = await fsp
-          .readFile(resolve(ctx.outDir, "../deploy/v1/config.json"), "utf8")
+          .readFile(
+            resolve(ctx.rootDir, ".netlify/deploy/v1/config.json"),
+            "utf8"
+          )
           .then((r) => JSON.parse(r));
         expect(config).toMatchInlineSnapshot(`
           {

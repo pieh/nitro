@@ -20,24 +20,12 @@ export const netlify = defineNitroPreset({
     async compiled(nitro: Nitro) {
       await writeHeaders(nitro);
       await writeRedirects(nitro);
+      await writeDeployConfig(nitro);
 
       await fsp.writeFile(
         join(nitro.options.output.dir, "server", "server.mjs"),
         generateNetlifyFunction(nitro)
       );
-
-      if (nitro.options.netlify) {
-        const configPath = join(
-          nitro.options.output.dir,
-          "../deploy/v1/config.json"
-        );
-        await fsp.mkdir(dirname(configPath), { recursive: true });
-        await fsp.writeFile(
-          configPath,
-          JSON.stringify(nitro.options.netlify),
-          "utf8"
-        );
-      }
     },
   },
 });
@@ -64,6 +52,7 @@ export const netlifyEdge = defineNitroPreset({
     async compiled(nitro: Nitro) {
       await writeHeaders(nitro);
       await writeRedirects(nitro);
+      await writeDeployConfig(nitro);
 
       // https://docs.netlify.com/edge-functions/create-integration/
       const manifest = {
@@ -99,6 +88,7 @@ export const netlifyStatic = defineNitroPreset({
     async compiled(nitro: Nitro) {
       await writeHeaders(nitro);
       await writeRedirects(nitro);
+      await writeDeployConfig(nitro);
     },
   },
 });
@@ -211,4 +201,19 @@ export const config = {
 
 function getGeneratorString(nitro: Nitro) {
   return `${nitro.options.framework.name}@${nitro.options.framework.version} (nitro: v${version})`;
+}
+
+async function writeDeployConfig(nitro: Nitro) {
+  if (nitro.options.netlify) {
+    const configPath = join(
+      nitro.options.rootDir,
+      ".netlify/deploy/v1/config.json"
+    );
+    await fsp.mkdir(dirname(configPath), { recursive: true });
+    await fsp.writeFile(
+      configPath,
+      JSON.stringify(nitro.options.netlify),
+      "utf8"
+    );
+  }
 }
